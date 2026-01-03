@@ -1,0 +1,45 @@
+# Build artifacts and output
+/build/
+/bin/
+/out/
+/dist/
+src/wrun
+wrun
+a.out
+
+# Object files and libraries
+*.o
+*.lo
+*.la
+*.a
+*.so
+*.dylib
+
+# Executables and cores
+*.exe
+core
+*.core
+
+# Coverage and test artifacts
+*.gcda
+*.gcno
+coverage/
+test-results/
+tests/*.out
+tests/*.log
+
+# Logs and temp
+*.log
+*.tmp
+
+# C/C++ tooling caches
+.ccache/
+.ccls-cache/
+compile_commands.json
+
+# Editors and IDEs
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
