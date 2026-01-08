@@ -78,6 +78,9 @@ int run(int argc, char *argv[])
     {
         switch (optc)
         {
+        case 'h':
+            usage();
+            break;
         case 'k':
             kill_flag = 1;
             break;
