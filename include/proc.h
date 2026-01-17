@@ -14,6 +14,13 @@ struct tcp_results
     int count;
 };
 
+struct pid_results
+{
+    int *pid_array;
+    int count;
+};
+
 struct tcp_results get_sockets_by_port(const char *file_name, const char *port);
+struct pid_results get_pids_by_inode(const long inode);
 
 #endif
