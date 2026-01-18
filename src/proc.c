@@ -11,6 +11,7 @@
 #define PROC_PATH "/proc"
 #define TCP_ROUTE "/proc/net/tcp"
 #define TCP_V6_ROUTE "/proc/net/tcp6"
+#define LISTEN_STATUS 10
 
 struct tcp_info
 {
@@ -72,8 +73,7 @@ struct tcp_results get_sockets_by_port(const char *file_name, const char *port)
                    &tcp_data.status,
                    &tcp_data.inode) == 3)
         {
-            //TODO: filter TCP data by listen status (0x0A)
-            if (tcp_data.local_port == target_port)
+            if (tcp_data.local_port == target_port && tcp_data.status == LISTEN_STATUS)
             {
 
                 if (current_found >= arr_capacity)
@@ -115,16 +115,33 @@ struct pid_results
     int count;
 };
 
+/**
+ * Searches through the /proc filesystem to find all PIDs that own a specific socket inode.
+ * * @param inode The target socket inode number to look for.
+ * @return A pid_results struct containing a dynamically allocated array of PIDs and the count.
+ * If no processes are found or an error occurs, the pid_array field will be NULL.
+ * @note THE CALLER IS RESPONSIBLE FOR FREEING THE 'pid_array' FIELD WITHIN THE RETURNED STRUCT.
+ */
 struct pid_results get_pids_by_inode(const long inode)
 {
 
     struct pid_results pid_res = {NULL, 0};
+    int capacity = 5;
+
+    pid_res.pid_array = malloc(capacity * sizeof(int));
+    if (pid_res.pid_array == NULL)
+        return pid_res;
+
     char target_socket_str[64];
     snprintf(target_socket_str, sizeof(target_socket_str), "socket:[%lu]", inode);
 
     DIR *proc_folder = opendir(PROC_PATH);
     if (proc_folder == NULL)
+    {
+        free(pid_res.pid_array);
+        pid_res.pid_array = NULL;
         return pid_res;
+    }
 
     struct dirent *entry;
     while ((entry = readdir(proc_folder)) != NULL)
@@ -156,14 +173,31 @@ struct pid_results get_pids_by_inode(const long inode)
 
             if (strcmp(target_socket_str, link_value) == 0)
             {
-                printf("Proceso %s => socket %lu\n",
-                       entry->d_name, inode);
-                       //TODO: Add the pids to an array
+                if (pid_res.count >= capacity)
+                {
+                    capacity *= 2;
+                    int *temp = realloc(pid_res.pid_array, capacity * sizeof(int));
+                    if (temp == NULL)
+                    {
+                        closedir(fd_folder);
+                        goto end;
+                    }
+                    pid_res.pid_array = temp;
+                }
+                pid_res.pid_array[pid_res.count] = atoi(entry->d_name);
+                pid_res.count++;
+                break;
             }
         }
         closedir(fd_folder);
     }
+end:
     closedir(proc_folder);
+    if (pid_res.count == 0)
+    {
+        free(pid_res.pid_array);
+        pid_res.pid_array = NULL;
+    }
 
     return pid_res;
 }
