@@ -9,6 +9,7 @@
 #include <string.h>
 
 #define PROC_PATH "/proc"
+#define COMM_PATH "/comm"
 #define TCP_ROUTE "/proc/net/tcp"
 #define TCP_V6_ROUTE "/proc/net/tcp6"
 #define LISTEN_STATUS 10
@@ -202,14 +203,26 @@ end:
     return pid_res;
 }
 
-/*
+/**
+ * Displays information about a process listening on a specific TCP port.
+ * @param pid The process ID to query for information.
+ * @param port The TCP port number that the process is using.
+ */
+void show_process_info(const int pid, const char *port)
+{
+    char comm_full_path[256];
+    char res_process[256] = "Unknown";
 
-print_process_info(pid, port)
+    snprintf(comm_full_path, sizeof(comm_full_path), "%s/%d%s", PROC_PATH, pid, COMM_PATH);
 
-Nombre del proceso
-
-PID
-
-Puerto
-
-*/
+    FILE *file = fopen(comm_full_path, "r");
+    if (file)
+    {
+        if (fgets(res_process, sizeof(res_process), file) != NULL)
+        {
+            res_process[strcspn(res_process, "\n")] = 0;
+        }
+        fclose(file);
+    }
+    printf("%d %s %s\n", pid, res_process, port);
+}

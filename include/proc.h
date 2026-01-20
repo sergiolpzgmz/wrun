@@ -22,5 +22,6 @@ struct pid_results
 
 struct tcp_results get_sockets_by_port(const char *file_name, const char *port);
 struct pid_results get_pids_by_inode(const long inode);
+void show_process_info(const int pid, const char *port);
 
 #endif
