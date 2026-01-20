@@ -31,10 +31,19 @@ Operate on a TCP port:
 
 > Note: The `-p/--port` parameter is required.
 
+## Requirements
+
+- GCC compiler
+- Make utility
+- Linux system
+
 ## Compile
 
-You can compile manually with gcc from the project root:
+### Using Makefile (Recommended)
 
 ```sh
-gcc -g src/wrun.c src/params.c src/proc.c src/utils.c -I include -o src/wrun
+cd wrun
+make
 ```
+
+This will compile the project and generate the `wrun` executable in the project root directory.
