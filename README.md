@@ -31,6 +31,36 @@ Operate on a TCP port:
 
 > Note: The `-p/--port` parameter is required.
 
+## How It Works: Process Discovery Flow
+
+```mermaid
+flowchart TD
+    A[Input: Port Number] --> B[Query /proc/net/tcp for IPv4 sockets]
+    A --> C[Query /proc/net/tcp6 for IPv6 sockets]
+    
+    B --> D[Filter by port and LISTEN status 10]
+    C --> E[Filter by port and LISTEN status 10]
+    
+    D --> F[Extract socket inodes]
+    E --> G[Extract socket inodes]
+    
+    F --> H[Search /proc/pid/fd for socket:inode]
+    G --> H
+    
+    H --> I[Match found?]
+    I -->|Yes| J[Read /proc/pid/comm for process name]
+    I -->|No| K[Continue searching]
+    
+    J --> L[Output: PID process_name port protocol]
+    K --> M[More PIDs to check?]
+    M -->|Yes| H
+    M -->|No| N[Done]
+    
+    L --> N
+```
+
+The algorithm uses Linux `/proc` filesystem to map sockets to processes through inode numbers.
+
 ## Requirements
 
 - GCC compiler
