@@ -20,8 +20,10 @@ struct pid_results
     int count;
 };
 
-struct tcp_results get_sockets_by_port(const char *file_name, const char *port);
-struct pid_results get_pids_by_inode(const long inode);
-void show_process_info(const int pid, const char *port);
+static struct tcp_results get_sockets_by_port(const char *file_name, const char *port);
+static struct pid_results get_pids_by_inode(const long inode);
+static void show_process_info(const int pid, const char *port);
+static void process_tcp_results(const struct tcp_results res_tcp, const char *port);
+void run_process_finder(const char *port);
 
 #endif

@@ -35,7 +35,7 @@ struct tcp_results
  * If no matches or an error occurs, the array pointer will be NULL.
  * @note THE CALLER IS RESPONSIBLE FOR FREEING THE 'array' FIELD WITHIN THE RETURNED STRUCT.
  */
-struct tcp_results get_sockets_by_port(const char *file_name, const char *port)
+static struct tcp_results get_sockets_by_port(const char *file_name, const char *port)
 {
     struct tcp_results final_res = {NULL, 0};
 
@@ -123,7 +123,7 @@ struct pid_results
  * If no processes are found or an error occurs, the pid_array field will be NULL.
  * @note THE CALLER IS RESPONSIBLE FOR FREEING THE 'pid_array' FIELD WITHIN THE RETURNED STRUCT.
  */
-struct pid_results get_pids_by_inode(const long inode)
+static struct pid_results get_pids_by_inode(const long inode)
 {
 
     struct pid_results pid_res = {NULL, 0};
@@ -208,10 +208,11 @@ end:
  * @param pid The process ID to query for information.
  * @param port The TCP port number that the process is using.
  */
-void show_process_info(const int pid, const char *port)
+static void show_process_info(const int pid, const char *port, int tcp_v6)
 {
     char comm_full_path[256];
     char res_process[256] = "Unknown";
+    char *tcp_res = "tcp"; 
 
     snprintf(comm_full_path, sizeof(comm_full_path), "%s/%d%s", PROC_PATH, pid, COMM_PATH);
 
@@ -224,5 +225,51 @@ void show_process_info(const int pid, const char *port)
         }
         fclose(file);
     }
-    printf("%d %s %s\n", pid, res_process, port);
+
+    if(tcp_v6 == 1) {
+        tcp_res = "tcp6";
+    }
+
+    printf("%d %s %s %s\n", pid, res_process, port, tcp_res);
+}
+
+/**
+ * Processes TCP socket results to find and display process information.
+ * @param res_tcp A tcp_results struct containing socket information to process.
+ * @param port The port number being searched for.
+ * @param tcp_v6 Flag indicating if this is for IPv6 (1) or IPv4 (0).
+ */
+static void process_tcp_results(const struct tcp_results res_tcp, const char *port, int tcp_v6)
+{
+    if (res_tcp.array != NULL)
+    {
+        for (int i = 0; i < res_tcp.count; i++)
+        {
+            struct pid_results pid_res = get_pids_by_inode(res_tcp.array[i].inode);
+            if (pid_res.pid_array != NULL)
+            {
+                for (int j = 0; j < pid_res.count; j++)
+                {
+                    show_process_info(pid_res.pid_array[j], port, tcp_v6);
+                }
+                free(pid_res.pid_array);
+            }
+        }
+    }
+}
+
+/**
+ * Main function to find and display processes listening on a specific TCP port.
+ * @param port The port number to search for processes listening on.
+ */
+void run_process_finder(const char *port)
+{
+    struct tcp_results res_tcp = get_sockets_by_port(TCP_ROUTE, port);
+    struct tcp_results res_tcp_v6 = get_sockets_by_port(TCP_V6_ROUTE, port);
+
+    process_tcp_results(res_tcp, port, 0);
+    process_tcp_results(res_tcp_v6, port, 1);
+
+    free(res_tcp.array);
+    free(res_tcp_v6.array);
 }
