@@ -64,6 +64,7 @@ The algorithm uses Linux `/proc` filesystem to map sockets to processes through 
 ## Requirements
 
 - GCC compiler
+- Valgrind
 - Make utility
 - Linux system
 

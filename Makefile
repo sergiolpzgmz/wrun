@@ -1,6 +1,6 @@
 IDIR = include
 CC=gcc
-CFLAGS=-I$(IDIR)
+CFLAGS=-I$(IDIR) -fdiagnostics-color=always -g
 
 ODIR=src
 
@@ -17,7 +17,10 @@ OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 wrun: $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS)
 
-.PHONY: clean
+.PHONY: clean valgrind
 
 clean:
 	rm -f $(ODIR)/*.o wrun
+
+valgrind: wrun
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./wrun
