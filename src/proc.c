@@ -8,24 +8,13 @@
 #include <unistd.h>
 #include <string.h>
 
+#include "../include/proc.h"
+
 #define PROC_PATH "/proc"
 #define COMM_PATH "/comm"
 #define TCP_ROUTE "/proc/net/tcp"
 #define TCP_V6_ROUTE "/proc/net/tcp6"
 #define LISTEN_STATUS 10
-
-struct tcp_info
-{
-    unsigned int local_port;
-    unsigned int status;
-    unsigned long inode;
-};
-
-struct tcp_results
-{
-    struct tcp_info *array;
-    int count;
-};
 
 /**
  * Parses network socket information from a /proc/net/tcp style file.
@@ -37,12 +26,14 @@ struct tcp_results
  */
 static struct tcp_results get_sockets_by_port(const char *file_name, const char *port)
 {
-    struct tcp_results final_res = {NULL, 0};
+
+    Tcp_dinamic_list tcp_list = {NULL, 0, 0};
+    struct tcp_results results = {NULL, 0};
 
     FILE *file = fopen(file_name, "r");
     if (file == NULL)
     {
-        return final_res;
+        return results;
     }
 
     char buffer[256];
@@ -50,17 +41,7 @@ static struct tcp_results get_sockets_by_port(const char *file_name, const char 
     if (fgets(buffer, sizeof(buffer), file) == NULL)
     {
         fclose(file);
-        return final_res;
-    }
-
-    int arr_capacity = 10;
-    int current_found = 0;
-    struct tcp_info *tcp_info_array = malloc(arr_capacity * sizeof(struct tcp_info));
-
-    if (tcp_info_array == NULL)
-    {
-        fclose(file);
-        return final_res;
+        return results;
     }
 
     struct tcp_info tcp_data;
@@ -76,62 +57,36 @@ static struct tcp_results get_sockets_by_port(const char *file_name, const char 
         {
             if (tcp_data.local_port == target_port && tcp_data.status == LISTEN_STATUS)
             {
-
-                if (current_found >= arr_capacity)
-                {
-                    arr_capacity *= 2;
-                    struct tcp_info *temp = realloc(tcp_info_array, arr_capacity * sizeof(struct tcp_info));
-                    if (temp == NULL)
-                    {
-                        free(tcp_info_array);
-                        fclose(file);
-                        return final_res;
-                    }
-                    tcp_info_array = temp;
-                }
-
-                tcp_info_array[current_found] = tcp_data;
-                current_found++;
+                dl_add(tcp_list, tcp_data);
             }
         }
     }
 
     fclose(file);
 
-    if (current_found == 0)
+    if (tcp_list.count == 0)
     {
-        free(tcp_info_array);
-        return final_res;
+        free(tcp_list.items);
+        return results;
     }
 
-    final_res.array = tcp_info_array;
-    final_res.count = current_found;
+    results.array = tcp_list.items;
+    results.count = tcp_list.count;
 
-    return final_res;
+    return results;
 }
-
-struct pid_results
-{
-    int *pid_array;
-    int count;
-};
 
 /**
  * Searches through the /proc filesystem to find all PIDs that own a specific socket inode.
- * * @param inode The target socket inode number to look for.
- * @return A pid_results struct containing a dynamically allocated array of PIDs and the count.
- * If no processes are found or an error occurs, the pid_array field will be NULL.
- * @note THE CALLER IS RESPONSIBLE FOR FREEING THE 'pid_array' FIELD WITHIN THE RETURNED STRUCT.
+ * @param inode The target socket inode number to look for.
+ * @return A Pid_list struct containing a dynamically allocated array of PIDs and the count.
+ * If no processes are found or an error occurs, the items field will be NULL.
+ * @note THE CALLER IS RESPONSIBLE FOR FREEING THE 'items' FIELD WITHIN THE RETURNED STRUCT.
  */
-static struct pid_results get_pids_by_inode(const long inode)
+static Pid_list get_pids_by_inode(const long inode)
 {
 
-    struct pid_results pid_res = {NULL, 0};
-    int capacity = 5;
-
-    pid_res.pid_array = malloc(capacity * sizeof(int));
-    if (pid_res.pid_array == NULL)
-        return pid_res;
+    Pid_list pid_res = {NULL, 0, 0};
 
     char target_socket_str[64];
     snprintf(target_socket_str, sizeof(target_socket_str), "socket:[%lu]", inode);
@@ -139,8 +94,8 @@ static struct pid_results get_pids_by_inode(const long inode)
     DIR *proc_folder = opendir(PROC_PATH);
     if (proc_folder == NULL)
     {
-        free(pid_res.pid_array);
-        pid_res.pid_array = NULL;
+        free(pid_res.items);
+        pid_res.items = NULL;
         return pid_res;
     }
 
@@ -164,29 +119,17 @@ static struct pid_results get_pids_by_inode(const long inode)
                 continue;
 
             char link_path[1024];
-            char link_value[512];
+            char link_value[512] = {0};
 
             snprintf(link_path, sizeof(link_path), "%s/%s", fd_folder_path, fd_entry->d_name);
             ssize_t len = readlink(link_path, link_value, sizeof(link_value) - 1);
 
-            if (len != -1)
+            if (len > 0)
                 link_value[len] = '\0';
 
             if (strcmp(target_socket_str, link_value) == 0)
             {
-                if (pid_res.count >= capacity)
-                {
-                    capacity *= 2;
-                    int *temp = realloc(pid_res.pid_array, capacity * sizeof(int));
-                    if (temp == NULL)
-                    {
-                        closedir(fd_folder);
-                        goto end;
-                    }
-                    pid_res.pid_array = temp;
-                }
-                pid_res.pid_array[pid_res.count] = atoi(entry->d_name);
-                pid_res.count++;
+                dl_add(pid_res, atoi(entry->d_name));
                 break;
             }
         }
@@ -196,8 +139,8 @@ end:
     closedir(proc_folder);
     if (pid_res.count == 0)
     {
-        free(pid_res.pid_array);
-        pid_res.pid_array = NULL;
+        free(pid_res.items);
+        pid_res.items = NULL;
     }
 
     return pid_res;
@@ -212,7 +155,7 @@ static void show_process_info(const int pid, const char *port, int tcp_v6)
 {
     char comm_full_path[256];
     char res_process[256] = "Unknown";
-    char *tcp_res = "tcp"; 
+    char *tcp_res = "tcp";
 
     snprintf(comm_full_path, sizeof(comm_full_path), "%s/%d%s", PROC_PATH, pid, COMM_PATH);
 
@@ -226,7 +169,8 @@ static void show_process_info(const int pid, const char *port, int tcp_v6)
         fclose(file);
     }
 
-    if(tcp_v6 == 1) {
+    if (tcp_v6 == 1)
+    {
         tcp_res = "tcp6";
     }
 
@@ -245,14 +189,14 @@ static void process_tcp_results(const struct tcp_results res_tcp, const char *po
     {
         for (int i = 0; i < res_tcp.count; i++)
         {
-            struct pid_results pid_res = get_pids_by_inode(res_tcp.array[i].inode);
-            if (pid_res.pid_array != NULL)
+            Pid_list pid_res = get_pids_by_inode(res_tcp.array[i].inode);
+            if (pid_res.items != NULL)
             {
-                for (int j = 0; j < pid_res.count; j++)
+                for (size_t j = 0; j < pid_res.count; j++)
                 {
-                    show_process_info(pid_res.pid_array[j], port, tcp_v6);
+                    show_process_info(pid_res.items[j], port, tcp_v6);
                 }
-                free(pid_res.pid_array);
+                free(pid_res.items);
             }
         }
     }
