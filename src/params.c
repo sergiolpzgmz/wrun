@@ -5,6 +5,7 @@
 
 #include "../include/params.h"
 #include "../include/utils.h"
+#include "../include/proc.h"
 
 #define PROGRAM_NAME "wrun"
 #define TRY_HELP_MSG "Try 'wrun --help' for more info"
@@ -16,7 +17,7 @@ static struct option const longopts[] = {
     {"version", no_argument, NULL, 'V'},
     {NULL, 0, NULL, 0}};
 
-void usage()
+static void usage()
 {
     printf("Usage: %s [OPTION]... -p PORT\n", PROGRAM_NAME);
 
@@ -42,7 +43,7 @@ void usage()
         stdout);
 }
 
-int parse_and_check_port(char *input_port)
+static int parse_and_check_port(char *input_port)
 {
     if (input_port)
     {
@@ -106,7 +107,31 @@ int run(int argc, char *argv[])
     }
 
     // Check if recived port is a valid TCP port
-    parse_and_check_port(port);
+    int invalid_port = parse_and_check_port(port);
+    if (invalid_port)
+    {
+        return 1;
+    }
 
+    Process_output_list process_result_list = run_process_finder(port);
+
+    if (process_result_list.count == 0)
+    {
+        fprintf(stderr, "wrun: %s: no process found\n", port);
+        return 1;
+    }
+
+    printf("%-7s %-10s %-6s %-6s\n", "PID", "PROCESS", "PORT", "SOCKET");
+    
+    for (size_t i = 0; i < process_result_list.count; i++)
+    {
+        printf("%-7d %-10s %-6s %-6s\n",
+               process_result_list.items[i].pid,
+               process_result_list.items[i].process,
+               process_result_list.items[i].port,
+               process_result_list.items[i].tcp_version);
+    }
+
+    free(process_result_list.items);
     return 0;
 }
