@@ -16,6 +16,13 @@ struct tcp_results
     int count;
 };
 
+struct process_output {
+    int pid;
+    char process[256];
+    const char *port;
+    char tcp_version[64];
+};
+
 typedef struct
 {
     struct tcp_info *items;
@@ -31,6 +38,14 @@ typedef struct
     size_t capacity;
 
 } Pid_list;
+
+typedef struct
+{
+    struct process_output *items;
+    size_t count;
+    size_t capacity;
+
+} Process_output_list;
 
 #define dl_add(list, item)                                                            \
     do                                                                                \
@@ -51,8 +66,8 @@ typedef struct
 
 static struct tcp_results get_sockets_by_port(const char *file_name, const char *port);
 static Pid_list get_pids_by_inode(const long inode);
-static void show_process_info(const int pid, const char *port, int tcp_v6);
-static void process_tcp_results(const struct tcp_results res_tcp, const char *port, int tcp_v6);
-void run_process_finder(const char *port);
+static struct process_output get_process_info(const int pid, const char *port, int tcp_v6);
+static void process_tcp_results(const struct tcp_results res_tcp, const char *port, int tcp_v6, Process_output_list *process_output_list);
+Process_output_list run_process_finder(const char *port);
 
 #endif
