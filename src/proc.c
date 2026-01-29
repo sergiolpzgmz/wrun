@@ -153,7 +153,7 @@ static Pid_list get_pids_by_inode(const long inode)
  * @param tcp_v6 Flag indicating if this is for IPv6 (1) or IPv4 (0).
  * @return A process_output struct containing the PID, process name, port, and TCP version.
  */
-static struct process_output get_process_info(const int pid, const char *port, int tcp_v6)
+static struct process_output get_process_info(const pid_t pid, const char *port, int tcp_v6)
 {
     char comm_full_path[256];
     char res_process[256] = "Unknown";

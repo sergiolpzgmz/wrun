@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <signal.h>
 
 #ifndef PROC_H
 #define PROC_H
@@ -17,7 +18,7 @@ struct tcp_results
 };
 
 struct process_output {
-    int pid;
+    pid_t pid;
     char process[256];
     const char *port;
     char tcp_version[64];
@@ -66,7 +67,7 @@ typedef struct
 
 static struct tcp_results get_sockets_by_port(const char *file_name, const char *port);
 static Pid_list get_pids_by_inode(const long inode);
-static struct process_output get_process_info(const int pid, const char *port, int tcp_v6);
+static struct process_output get_process_info(const pid_t pid, const char *port, int tcp_v6);
 static void process_tcp_results(const struct tcp_results res_tcp, const char *port, int tcp_v6, Process_output_list *process_output_list);
 Process_output_list run_process_finder(const char *port);
 
