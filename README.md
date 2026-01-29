@@ -78,3 +78,17 @@ make
 ```
 
 This will compile the project and generate the `wrun` executable in the project root directory.
+
+## Purpose
+
+This project was developed with educational purposes as a learning exercise in:
+
+- Linux command-line tool development using C
+- Process and socket management through the /proc filesystem
+- Memory management and dynamic data structures in C
+
+## Acknowledgments
+
+This project was developed with the assistance of **Big Pickle** (an AI model) through the **opencode** CLI tool, which helped with:
+- Debugging and assistance with compilation issues.
+- Documentation improvements and technical writing
