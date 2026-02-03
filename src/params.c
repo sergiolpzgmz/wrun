@@ -1,11 +1,15 @@
+#define _POSIX_C_SOURCE 200809L
+
 #include <stdio.h>
 #include <getopt.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <signal.h>
 
 #include "../include/params.h"
 #include "../include/utils.h"
 #include "../include/proc.h"
+#include "../include/kill.h"
 
 #define PROGRAM_NAME "wrun"
 #define TRY_HELP_MSG "Try 'wrun --help' for more info"
@@ -68,6 +72,32 @@ static int parse_and_check_port(char *input_port)
     return 0;
 }
 
+static void show_process_output_res(Process_output_list process_result_list)
+{
+    printf("%-7s %-10s %-6s %-6s\n", "PID", "PROCESS", "PORT", "SOCKET");
+
+    for (size_t i = 0; i < process_result_list.count; i++)
+    {
+        printf("%-7d %-10s %-6s %-6s\n",
+               process_result_list.items[i].pid,
+               process_result_list.items[i].process,
+               process_result_list.items[i].port,
+               process_result_list.items[i].tcp_version);
+    }
+}
+
+static int get_pid_to_kill(Process_output_list process_result_list)
+{
+    pid_t pid = 0;
+
+    for (size_t i = 0; i < process_result_list.count; i++)
+    {
+        pid = process_result_list.items[i].pid;
+    }
+
+    return pid;
+}
+
 int run(int argc, char *argv[])
 {
     int optc;
@@ -81,7 +111,7 @@ int run(int argc, char *argv[])
         {
         case 'h':
             usage();
-            break;
+            return 0;
         case 'k':
             kill_flag = 1;
             break;
@@ -121,16 +151,19 @@ int run(int argc, char *argv[])
         return 1;
     }
 
-    printf("%-7s %-10s %-6s %-6s\n", "PID", "PROCESS", "PORT", "SOCKET");
-    
-    for (size_t i = 0; i < process_result_list.count; i++)
+    if (kill_flag)
     {
-        printf("%-7d %-10s %-6s %-6s\n",
-               process_result_list.items[i].pid,
-               process_result_list.items[i].process,
-               process_result_list.items[i].port,
-               process_result_list.items[i].tcp_version);
+        pid_t pid = get_pid_to_kill(process_result_list);
+
+        if (pid > 0)
+        {
+            send_kill_signal(pid, SIGTERM);
+        }
+        free(process_result_list.items);
+        return 0;
     }
+
+    show_process_output_res(process_result_list);
 
     free(process_result_list.items);
     return 0;
