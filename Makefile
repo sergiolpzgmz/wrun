@@ -4,10 +4,10 @@ CFLAGS=-I$(IDIR) -fdiagnostics-color=always -g
 
 ODIR=src
 
-_DEPS = params.h proc.h utils.h
+_DEPS = params.h proc.h utils.h kill.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = wrun.o params.o proc.o utils.o
+_OBJ = wrun.o params.o proc.o utils.o kill.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 
