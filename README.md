@@ -10,6 +10,8 @@
 
 ## Usage
 
+<img src="assets/demo.gif" alt="Demo" width="600"/>
+
 Show help:
 
 ```sh
