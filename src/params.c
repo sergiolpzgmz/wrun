@@ -86,18 +86,6 @@ static void show_process_output_res(Process_output_list process_result_list)
     }
 }
 
-static int get_pid_to_kill(Process_output_list process_result_list)
-{
-    pid_t pid = 0;
-
-    for (size_t i = 0; i < process_result_list.count; i++)
-    {
-        pid = process_result_list.items[i].pid;
-    }
-
-    return pid;
-}
-
 int run(int argc, char *argv[])
 {
     int optc;
@@ -153,12 +141,23 @@ int run(int argc, char *argv[])
 
     if (kill_flag)
     {
-        pid_t pid = get_pid_to_kill(process_result_list);
-
-        if (pid > 0)
+        pid_t pid = 0;
+        for (size_t i = 0; i < process_result_list.count; i++)
         {
-            send_kill_signal(pid, SIGTERM);
+            pid = process_result_list.items[i].pid;
+            if (pid > 0)
+            {
+                if (send_kill_signal(pid, SIGTERM) == 1)
+                {
+                    fprintf(stderr, "wrun: failed to terminate process %d\n", pid);
+                }
+                else
+                {
+                    fprintf(stdout, "Killed process %d (%s)\n", pid, process_result_list.items[0].process);
+                }
+            }
         }
+
         free(process_result_list.items);
         return 0;
     }
