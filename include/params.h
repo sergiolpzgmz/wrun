@@ -1,7 +1,7 @@
 #ifndef PARAMS_H
 #define PARAMS_H
 
-#include <proc.h>
+#include "proc.h"
 
 static void usage();
 int run(int argc, char *argv[]);

@@ -12,14 +12,20 @@
 #include "../include/kill.h"
 
 #define PROGRAM_NAME "wrun"
+#define VERSION "0.1.0"
 #define TRY_HELP_MSG "Try 'wrun --help' for more info"
 
 static struct option const longopts[] = {
     {"kill", no_argument, NULL, 'k'},
     {"port", required_argument, NULL, 'p'},
     {"help", no_argument, NULL, 'h'},
-    {"version", no_argument, NULL, 'V'},
+    {"version", no_argument, NULL, 'v'},
     {NULL, 0, NULL, 0}};
+
+static void version()
+{
+    printf("%s v%s © 2026 by Sergio López Gómez\n", PROGRAM_NAME, VERSION);
+}
 
 static void usage()
 {
@@ -43,7 +49,7 @@ static void usage()
 
     fputs(
         "  -h, --help          display this help and exit\n"
-        "  -V, --version       output version information and exit\n",
+        "  -v, --version       output version information and exit\n",
         stdout);
 }
 
@@ -93,12 +99,15 @@ int run(int argc, char *argv[])
     int port_flag = 0;
     char *port;
 
-    while ((optc = getopt_long(argc, argv, "kp:", longopts, NULL)) != -1)
+    while ((optc = getopt_long(argc, argv, "kp:hv", longopts, NULL)) != -1)
     {
         switch (optc)
         {
         case 'h':
             usage();
+            return 0;
+        case 'v':
+            version();
             return 0;
         case 'k':
             kill_flag = 1;
