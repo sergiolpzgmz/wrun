@@ -65,10 +65,6 @@ typedef struct
         list.items[list.count++] = item;                                              \
     } while (0)
 
-static struct tcp_results get_sockets_by_port(const char *file_name, const char *port);
-static Pid_list get_pids_by_inode(const long inode);
-static struct process_output get_process_info(const pid_t pid, const char *port, int tcp_v6);
-static void process_tcp_results(const struct tcp_results res_tcp, const char *port, int tcp_v6, Process_output_list *process_output_list);
 Process_output_list run_process_finder(const char *port);
 
 #endif
