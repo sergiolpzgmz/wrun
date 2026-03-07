@@ -1,26 +1,31 @@
 IDIR = include
-CC=gcc
-CFLAGS=-I$(IDIR) -fdiagnostics-color=always -g
+CC = gcc
+CFLAGS = -I$(IDIR) -Wall -Wextra -pedantic -std=c99
 
-ODIR=src
+SRCDIR = src
+BUILDDIR = build
 
 _DEPS = params.h proc.h utils.h kill.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
 _OBJ = wrun.o params.o proc.o utils.o kill.o
-OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
+OBJ = $(patsubst %,$(BUILDDIR)/%,$(_OBJ))
 
+all: wrun
 
-%.o: %.c $(DEPS)
+$(BUILDDIR):
+	mkdir -p $(BUILDDIR)
+
+wrun: $(OBJ) | $(BUILDDIR)
+	$(CC) -o $(BUILDDIR)/wrun $^ $(CFLAGS)
+
+$(BUILDDIR)/%.o: $(SRCDIR)/%.c | $(BUILDDIR)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-wrun: $(OBJ)
-	$(CC) -o $@ $^ $(CFLAGS)
-
-.PHONY: clean valgrind
+.PHONY: all clean valgrind
 
 clean:
-	rm -f $(ODIR)/*.o wrun
+	rm -rf $(BUILDDIR)
 
-valgrind: wrun
-	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./wrun
+valgrind: $(BUILDDIR)/wrun
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes $(BUILDDIR)/wrun
