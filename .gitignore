@@ -1,3 +1,7 @@
 /build/
 .vscode/
+
 __pycache__
+
+*.o
+wrun
