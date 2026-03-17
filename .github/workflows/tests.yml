@@ -1,0 +1,46 @@
+name: Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y gcc make
+
+      - name: Compile project
+        run: make
+
+      - name: Verify binary exists
+        run: ls -la build/wrun
+
+      - name: Start test server
+        run: |
+          python3 scripts/listener.py &
+          echo $! > /tmp/test_server.pid
+          sleep 2
+
+      - name: Verify port is in use
+        run: ss -tlnp | grep 8080 || netstat -tlnp | grep 8080
+
+      - name: Kill process on port
+        run: ./build/wrun -k -p 8080
+
+      - name: Verify port is free
+        run: |
+          if ss -tlnp 2>/dev/null | grep -q 8080 || netstat -tlnp 2>/dev/null | grep -q 8080; then
+            echo "ERROR: Port 8080 still in use"
+            exit 1
+          else
+            echo "SUCCESS: Port 8080 is free"
+          fi
