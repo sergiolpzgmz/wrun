@@ -65,20 +65,24 @@ The algorithm uses Linux `/proc` filesystem to map sockets to processes through 
 
 ## Requirements
 
-- GCC compiler
-- Valgrind
-- Make utility
+- Any C compiler
+- make utility
 - Linux system
 
-## Compile
+## Compile and Install
 
-### Using Makefile (Recommended)
-
+Compile:
 ```sh
 cd wrun
 make
 ```
+Install:
+```sh
+make install
 
+# Uninstall
+make uninstall
+```
 This will compile the project and generate the `wrun` executable in the project root directory.
 
 ## Purpose

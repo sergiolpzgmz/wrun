@@ -22,10 +22,16 @@ wrun: $(OBJ) | $(BUILDDIR)
 $(BUILDDIR)/%.o: $(SRCDIR)/%.c | $(BUILDDIR)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-.PHONY: all clean valgrind
-
 clean:
 	rm -rf $(BUILDDIR)
 
 valgrind: $(BUILDDIR)/wrun
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes $(BUILDDIR)/wrun
+
+install:
+	cp $(BUILDDIR)/wrun /usr/local/bin/wrun
+
+uninstall:
+	rm -f /usr/local/bin/wrun
+
+.PHONY: all clean valgrind install uninstall
