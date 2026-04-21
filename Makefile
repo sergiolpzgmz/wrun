@@ -28,7 +28,7 @@ clean:
 valgrind: $(BUILDDIR)/wrun
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes $(BUILDDIR)/wrun
 
-install:
+install: wrun
 	cp $(BUILDDIR)/wrun /usr/local/bin/wrun
 
 uninstall:
