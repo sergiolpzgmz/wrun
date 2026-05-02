@@ -27,8 +27,6 @@ Operate on a TCP port:
 # Terminate the process associated with the port
 ./wrun -k -p 8080
 
-# Long form
-./wrun --port=8080 --kill
 ```
 
 > Note: The `-p/--port` parameter is required.
@@ -83,18 +81,16 @@ make install
 # Uninstall
 make uninstall
 ```
-This will compile the project and generate the `wrun` executable in the project root directory.
 
 ## Purpose
 
-This project was developed with educational purposes as a learning exercise in:
-
-- Linux command-line tool development using C
-- Process and socket management through the /proc filesystem
-- Memory management and dynamic data structures in C
+This project was developed to:
+- Learn C from scratch
+- Learn how to use dynamic memory management in C
+- Learn how processes work in Linux
 
 ## Acknowledgments
 
-This project was developed with the assistance of **Big Pickle** (an AI model) through the **opencode** CLI tool, which helped with:
-- Debugging and assistance with compilation issues.
-- Documentation improvements and technical writing
+AI tools were used to assist with:
+- Debugging
+- Writing and improving documentation
