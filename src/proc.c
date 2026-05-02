@@ -45,7 +45,7 @@ static struct tcp_results get_sockets_by_port(const char *file_name, const char 
     }
 
     struct tcp_info tcp_data;
-    int target_port = (int)strtol(port, NULL, 10);
+    unsigned int target_port = (int)strtol(port, NULL, 10);
 
     while (fgets(buffer, sizeof(buffer), file) != NULL)
     {
