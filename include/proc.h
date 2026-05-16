@@ -1,6 +1,3 @@
-#include <stddef.h>
-#include <signal.h>
-
 #ifndef PROC_H
 #define PROC_H
 
