@@ -162,7 +162,7 @@ int run(int argc, char *argv[])
                 }
                 else
                 {
-                    fprintf(stdout, "Killed process %d (%s)\n", pid, process_result_list.items[0].process);
+                    printf("Killed process %d (%s)\n", pid, process_result_list.items[0].process);
                 }
             }
         }
