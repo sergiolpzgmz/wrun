@@ -4,6 +4,6 @@
 
 int main(int argc, char *argv[])
 {
-    run(argc, argv);
-    return 0;
+    int output_code = run(argc, argv);
+    return output_code;
 }
