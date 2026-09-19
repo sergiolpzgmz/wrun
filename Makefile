@@ -1,37 +1,39 @@
 IDIR = include
-CC = gcc
+CC=gcc
 CFLAGS = -I$(IDIR) -Wall -Wextra -pedantic -std=c99
 
-SRCDIR = src
 BUILDDIR = build
+SRCDIR = src
+BINDIR = bin
+INSTALLDIR = /usr/bin
 
-_DEPS = params.h proc.h utils.h kill.h
+_DEPS = kill.h params.h proc.h utils.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = wrun.o params.o proc.o utils.o kill.o
+_OBJ = kill.o params.o proc.o utils.o wrun.o
 OBJ = $(patsubst %,$(BUILDDIR)/%,$(_OBJ))
 
-all: wrun
+wrun: $(BINDIR)/wrun
 
-$(BUILDDIR):
-	mkdir -p $(BUILDDIR)
+$(BUILDDIR) $(BINDIR):
+	mkdir -p $@
 
-wrun: $(OBJ) | $(BUILDDIR)
-	$(CC) -o $(BUILDDIR)/wrun $^ $(CFLAGS)
-
-$(BUILDDIR)/%.o: $(SRCDIR)/%.c | $(BUILDDIR)
+$(BUILDDIR)/%.o: $(SRCDIR)/%.c $(DEPS) | $(BUILDDIR)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-clean:
-	rm -rf $(BUILDDIR)
+$(BINDIR)/wrun: $(OBJ) | $(BINDIR)
+	$(CC) -o $@ $^ $(CFLAGS)
 
-valgrind: $(BUILDDIR)/wrun
-	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes $(BUILDDIR)/wrun
+valgrind: $(BINDIR)/wrun
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes $(BINDIR)/wrun
 
 install: wrun
-	cp $(BUILDDIR)/wrun /usr/local/bin/wrun
+	cp $(BINDIR)/wrun $(INSTALLDIR)
 
 uninstall:
-	rm -f /usr/local/bin/wrun
+	rm -f $(INSTALLDIR)/wrun
 
-.PHONY: all clean valgrind install uninstall
+.PHONY: clean wrun valgrind install uninstall
+
+clean:
+	rm -f $(BUILDDIR)/*.o $(BINDIR)/wrun *~ core $(IDIR)/*~
