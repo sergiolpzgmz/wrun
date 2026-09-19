@@ -22,7 +22,7 @@ jobs:
         run: make
 
       - name: Verify binary exists
-        run: ls -la build/wrun
+        run: ls -la bin/wrun
 
       - name: Start test server
         run: |
@@ -34,7 +34,7 @@ jobs:
         run: ss -tlnp | grep 8080 || netstat -tlnp | grep 8080
 
       - name: Kill process on port
-        run: ./build/wrun -k -p 8080
+        run: ./bin/wrun -k -p 8080
 
       - name: Verify port is free
         run: |
