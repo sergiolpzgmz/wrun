@@ -6,10 +6,10 @@
 #include <ctype.h>
 #include <signal.h>
 
-#include "../include/params.h"
-#include "../include/utils.h"
-#include "../include/proc.h"
-#include "../include/kill.h"
+#include "params.h"
+#include "utils.h"
+#include "proc.h"
+#include "kill.h"
 
 #define PROGRAM_NAME "wrun"
 #define VERSION "0.1.0"

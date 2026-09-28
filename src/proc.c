@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <string.h>
 
-#include "../include/proc.h"
+#include "proc.h"
 
 #define PROC_PATH "/proc"
 #define COMM_PATH "/comm"

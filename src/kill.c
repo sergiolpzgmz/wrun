@@ -4,7 +4,7 @@
 #include <errno.h>
 #include <stdio.h>
 
-#include "../include/kill.h"
+#include "kill.h"
 
 static int check_process_access(const pid_t pid)
 {
